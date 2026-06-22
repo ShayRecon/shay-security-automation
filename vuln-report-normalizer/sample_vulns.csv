@@ -2,3 +2,5 @@ Asset,Finding,Severity
 web-app-01,Missing Security Headers,med
 vpn-gateway,Weak TLS Cipher,H
 db-server,Outdated OpenSSL,critical
+mail-server,Verbose Banner Disclosure,low
+portal,Clickjacking Risk,Medium
