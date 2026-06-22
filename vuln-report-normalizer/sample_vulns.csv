@@ -1,5 +1,5 @@
 Asset,Finding,Severity
-web-app-01,Missing Security Headers,med
+web-app-01,Missing Security Headers,Medium
 vpn-gateway,Weak TLS Cipher,High
 db-server,Outdated OpenSSL,critical
 mail-server,Verbose Banner Disclosure,low
