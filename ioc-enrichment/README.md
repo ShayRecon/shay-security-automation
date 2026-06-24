@@ -47,3 +47,17 @@ This contains:
 - detected type
 - enrichment placeholder fields
 - analyst notes section
+
+## Sample Console Output
+
+```text
+IOC Enrichment Result
+==================================================
+IOC Type           : SHA256 Hash
+Enrichment Status  : Not enriched yet
+Reputation         : Unknown
+Confidence         : N/A
+Source             : Placeholder
+
+Report exported to ioc_report.json
+```
