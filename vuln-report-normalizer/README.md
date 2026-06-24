@@ -42,6 +42,23 @@ normalized_vulns.csv
 python vuln_normalizer.py
 ```
 
+## Sample Console Output
+
+```text
+Normalized vulnerability report saved as normalized_vulns.csv
+==================================================
+Original rows       : 7
+Rows after cleanup  : 5
+Duplicates removed  : 2
+
+Severity Summary
+==================================================
+Medium      2
+High        1
+Critical    1
+Low         1
+```
+
 ## Example Workflow
 1. Export findings from a scanner or tracking sheet
 2. Save them in CSV format
