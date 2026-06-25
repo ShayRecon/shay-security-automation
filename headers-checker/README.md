@@ -1,33 +1,35 @@
 # Web Security Findings Automation
 
-This project automates basic web application security reviews by assessing HTTP security headers and cookie security settings.
+A lightweight Python-based AppSec automation tool that reviews web applications for missing HTTP security headers and generates remediation-ready security findings.
+
+## Features
+
+* Automated security header assessment
+* Detection of missing security controls
+* Finding generation with severity ratings
+* JSON technical reporting
+* CSV remediation reporting
 
 ## Security Checks
 
 ### HTTP Security Headers
 
-* Content-Security-Policy
-* Strict-Transport-Security
+* Content-Security-Policy (CSP)
+* Strict-Transport-Security (HSTS)
 * X-Frame-Options
 * X-Content-Type-Options (nosniff)
 * Referrer-Policy
 * Permissions-Policy
 
-### Cookie Security
-
-* Secure Flag
-* HttpOnly Flag
-* SameSite Attribute
-
 ## Output Files
 
 ### headers_report.json
 
-Technical assessment results.
+Contains technical assessment results and header status.
 
 ### headers_vuln_report.csv
 
-Remediation-ready findings report containing:
+Contains remediation-ready findings including:
 
 * Asset
 * Finding
@@ -39,11 +41,19 @@ Remediation-ready findings report containing:
 
 ## Example Workflow
 
-1. Enter target URL
-2. Review headers and cookies
-3. Identify missing controls
+1. Provide a target URL
+2. Review HTTP response headers
+3. Identify missing security controls
 4. Generate findings
 5. Export remediation report
+
+## Example Findings
+
+* Missing Content-Security-Policy
+* Missing Strict-Transport-Security
+* Missing X-Frame-Options
+* Missing Referrer-Policy
+* Missing Permissions-Policy
 
 ## Intended Audience
 
