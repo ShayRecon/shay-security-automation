@@ -1,33 +1,16 @@
-# Web Security Findings Automation
+## Projects
 
-A Python-based AppSec automation project that reviews web applications for missing HTTP security headers and insecure cookie configurations. The tool converts identified issues into remediation-style security findings and exports results in JSON and CSV formats.
+### Web Security Findings Automation
 
-## Features
+A Python-based AppSec automation project that reviews web applications for missing security headers and generates remediation-ready findings.
 
-* Security header assessment
-* Cookie security flag validation
-* Automated finding generation
+**Current capabilities**
+
+* Header security assessment
+* Finding generation
 * JSON reporting
 * CSV remediation reporting
 
-## Checks Performed
+### IOC Enrichment
 
-### Security Headers
-
-* Content-Security-Policy
-* Strict-Transport-Security
-* X-Frame-Options
-* X-Content-Type-Options (nosniff)
-* Referrer-Policy
-* Permissions-Policy
-
-### Cookie Security
-
-* Secure flag
-* HttpOnly flag
-* SameSite attribute
-
-## Output
-
-* headers_report.json
-* headers_vuln_report.csv
+A starter SOC automation project for IOC classification and future threat intelligence enrichment workflows.
