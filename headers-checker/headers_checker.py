@@ -108,10 +108,18 @@ def check_headers(url):
         # Cookie Checks
         print("\nChecking Cookies")
         print("=" * 60)
+        cookie_count = len(response.cookies)
 
-        for cookie in response.cookies:
+print(f"Cookies Found: {cookie_count}")
 
-            cookie_name = cookie.name
+if cookie_count == 0:
+    print("No cookies observed in response.")
+
+       for cookie in response.cookies:
+
+    print(f"Cookie: {cookie.name}")
+
+    cookie_name = cookie.name
 
             if not cookie.secure:
                 add_finding(
