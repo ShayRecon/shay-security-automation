@@ -1,3 +1,6 @@
+import ssl
+import socket
+from urllib.parse import urlparse
 import requests
 import json
 import csv
@@ -38,6 +41,38 @@ FINDING_MAP = {
     }
 }
 
+def check_tls(url, findings):
+
+    try:
+        hostname = urlparse(url).hostname
+
+        if not hostname:
+            return
+
+        context = ssl.create_default_context()
+
+        with socket.create_connection((hostname, 443), timeout=5) as sock:
+            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+
+                tls_version = ssock.version()
+
+                print("\nTLS Assessment")
+                print("=" * 60)
+                print(f"TLS Version: {tls_version}")
+
+                if tls_version in ["TLSv1", "TLSv1.1"]:
+                    findings.append({
+                        "Asset": url,
+                        "Finding": "Weak TLS Configuration",
+                        "Severity": "High",
+                        "Description": f"Server supports deprecated TLS version: {tls_version}",
+                        "Recommendation": "Disable TLS 1.0 and TLS 1.1 and enforce modern TLS versions.",
+                        "Status": "Open",
+                        "Owner": "Unassigned"
+                    })
+
+    except Exception as e:
+        print(f"TLS assessment skipped: {e}")
 
 def check_headers(url):
     report = {
