@@ -53,6 +53,63 @@ def check_headers(url):
     try:
         response = requests.get(url, timeout=10)
 
+        print("\nChecking cookies...")
+print("=" * 60)
+
+for cookie in response.cookies:
+
+    cookie_name = cookie.name
+
+    # Secure flag
+    if not cookie.secure:
+        findings.append({
+            "Asset": url,
+            "Finding": f"Cookie '{cookie_name}' missing Secure flag",
+            "Severity": "Medium",
+            "Description": "Cookie is transmitted without the Secure attribute.",
+            "Recommendation": "Set the Secure attribute on cookies.",
+            "Status": "Open",
+            "Owner": "Unassigned"
+        })
+
+    # HttpOnly check (best effort)
+    if "httponly" not in str(cookie).lower():
+        findings.append({
+            "Asset": url,
+            "Finding": f"Cookie '{cookie_name}' missing HttpOnly flag",
+            "Severity": "Medium",
+            "Description": "Cookie may be accessible through client-side scripts.",
+            "Recommendation": "Set the HttpOnly attribute on cookies.",
+            "Status": "Open",
+            "Owner": "Unassigned"
+        })
+
+        server_header = response.headers.get("Server")
+
+if server_header:
+    findings.append({
+        "Asset": url,
+        "Finding": "Server Version Disclosure",
+        "Severity": "Low",
+        "Description": f"Server header exposed: {server_header}",
+        "Recommendation": "Minimize or remove server banner information.",
+        "Status": "Open",
+        "Owner": "Unassigned"
+    })
+
+powered_by = response.headers.get("X-Powered-By")
+
+if powered_by:
+    findings.append({
+        "Asset": url,
+        "Finding": "X-Powered-By Header Disclosure",
+        "Severity": "Low",
+        "Description": f"Technology disclosure detected: {powered_by}",
+        "Recommendation": "Remove or minimize technology disclosure headers.",
+        "Status": "Open",
+        "Owner": "Unassigned"
+    })
+
         print(f"\nChecking headers for: {url}")
         print("=" * 60)
 
