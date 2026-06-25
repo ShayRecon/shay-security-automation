@@ -1,47 +1,33 @@
-# Shay Security Automation
+# Web Security Findings Automation
 
-A collection of small security automation projects focused on practical blue-team and AppSec workflows.
+A Python-based AppSec automation project that reviews web applications for missing HTTP security headers and insecure cookie configurations. The tool converts identified issues into remediation-style security findings and exports results in JSON and CSV formats.
 
-## Projects Included
+## Features
 
-### 1. HTTP Security Headers Checker
-Checks whether a target website implements important security headers such as:
-- Content-Security-Policy
-- Strict-Transport-Security
-- X-Frame-Options
-- X-Content-Type-Options
-- Referrer-Policy
-- Permissions-Policy
+* Security header assessment
+* Cookie security flag validation
+* Automated finding generation
+* JSON reporting
+* CSV remediation reporting
 
-### 2. Vulnerability Report Normalizer
-Parses vulnerability scan exports (CSV) and normalizes fields such as:
-- Severity
-- Finding title
-- Asset / host
-- Remediation status
+## Checks Performed
 
-Useful for cleaning scanner output before reporting or tracking remediation.
+### Security Headers
 
-### 3. IOC Enrichment Skeleton
-A starter script for organizing enrichment of:
-- IP addresses
-- Domains
-- File hashes
+* Content-Security-Policy
+* Strict-Transport-Security
+* X-Frame-Options
+* X-Content-Type-Options (nosniff)
+* Referrer-Policy
+* Permissions-Policy
 
-This project is intended as a lightweight automation lab for security operations, reporting, and analysis workflows.
+### Cookie Security
 
----
+* Secure flag
+* HttpOnly flag
+* SameSite attribute
 
-## Repository Structure
+## Output
 
-```bash
-headers-checker/
-vuln-report-normalizer/
-ioc-enrichment/
-```
-
-## Future Enhancements
-- Wazuh alert parser
-- MITRE ATT&CK mapper
-- Security control evidence tracker
-- Log triage helper scripts
+* headers_report.json
+* headers_vuln_report.csv
