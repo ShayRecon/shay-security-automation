@@ -1,45 +1,57 @@
-import ssl
-import socket
-from urllib.parse import urlparse
 import requests
 import json
 import csv
+import ssl
+import socket
+from urllib.parse import urlparse
 
 SECURITY_HEADERS = {
-    "Content-Security-Policy": "Helps reduce XSS and content injection risks by controlling allowed content sources.",
-    "Strict-Transport-Security": "Forces browsers to use HTTPS and helps reduce SSL stripping risks.",
-    "X-Frame-Options": "Helps protect against clickjacking by controlling framing of the site.",
-    "X-Content-Type-Options": "Prevents MIME-type sniffing by browsers.",
-    "Referrer-Policy": "Controls how much referrer information is shared with other sites.",
-    "Permissions-Policy": "Restricts access to sensitive browser features like camera, microphone, and geolocation."
-}
-
-FINDING_MAP = {
     "Content-Security-Policy": {
         "severity": "Medium",
+        "risk": "Helps reduce XSS and content injection risks by controlling allowed content sources.",
         "recommendation": "Implement a restrictive Content-Security-Policy header."
     },
     "Strict-Transport-Security": {
         "severity": "Medium",
+        "risk": "Forces browsers to use HTTPS and helps reduce SSL stripping risks.",
         "recommendation": "Enable HSTS to enforce HTTPS connections."
     },
     "X-Frame-Options": {
         "severity": "Medium",
+        "risk": "Helps protect against clickjacking by controlling framing of the site.",
         "recommendation": "Set X-Frame-Options to DENY or SAMEORIGIN."
     },
     "X-Content-Type-Options": {
         "severity": "Medium",
+        "risk": "Prevents MIME-type sniffing by browsers.",
         "recommendation": "Set X-Content-Type-Options to nosniff."
     },
     "Referrer-Policy": {
         "severity": "Low",
+        "risk": "Controls how much referrer information is shared with other sites.",
         "recommendation": "Define a Referrer-Policy to control referrer leakage."
     },
     "Permissions-Policy": {
         "severity": "Low",
+        "risk": "Restricts access to sensitive browser features.",
         "recommendation": "Restrict unnecessary browser features using Permissions-Policy."
     }
 }
+
+
+def add_finding(findings, asset, finding, severity,
+                description, recommendation):
+
+    findings.append({
+        "Asset": asset,
+        "Finding": finding,
+        "Severity": severity,
+        "Description": description,
+        "Recommendation": recommendation,
+        "Status": "Open",
+        "Owner": "Unassigned"
+    })
+
 
 def check_tls(url, findings):
 
@@ -61,20 +73,21 @@ def check_tls(url, findings):
                 print(f"TLS Version: {tls_version}")
 
                 if tls_version in ["TLSv1", "TLSv1.1"]:
-                    findings.append({
-                        "Asset": url,
-                        "Finding": "Weak TLS Configuration",
-                        "Severity": "High",
-                        "Description": f"Server supports deprecated TLS version: {tls_version}",
-                        "Recommendation": "Disable TLS 1.0 and TLS 1.1 and enforce modern TLS versions.",
-                        "Status": "Open",
-                        "Owner": "Unassigned"
-                    })
+                    add_finding(
+                        findings,
+                        url,
+                        "Weak TLS Configuration",
+                        "High",
+                        f"Server supports deprecated TLS version: {tls_version}",
+                        "Disable TLS 1.0 and TLS 1.1 and enforce modern TLS versions."
+                    )
 
     except Exception as e:
         print(f"TLS assessment skipped: {e}")
 
+
 def check_headers(url):
+
     report = {
         "target": url,
         "results": []
@@ -86,197 +99,191 @@ def check_headers(url):
     missing_count = 0
 
     try:
+
         response = requests.get(url, timeout=10)
 
-        print("\nChecking cookies...")
-print("=" * 60)
+        # TLS Check
+        check_tls(url, findings)
 
-for cookie in response.cookies:
-
-    cookie_name = cookie.name
-
-    # Secure flag
-    if not cookie.secure:
-        findings.append({
-            "Asset": url,
-            "Finding": f"Cookie '{cookie_name}' missing Secure flag",
-            "Severity": "Medium",
-            "Description": "Cookie is transmitted without the Secure attribute.",
-            "Recommendation": "Set the Secure attribute on cookies.",
-            "Status": "Open",
-            "Owner": "Unassigned"
-        })
-
-    # HttpOnly check (best effort)
-    if "httponly" not in str(cookie).lower():
-        findings.append({
-            "Asset": url,
-            "Finding": f"Cookie '{cookie_name}' missing HttpOnly flag",
-            "Severity": "Medium",
-            "Description": "Cookie may be accessible through client-side scripts.",
-            "Recommendation": "Set the HttpOnly attribute on cookies.",
-            "Status": "Open",
-            "Owner": "Unassigned"
-        })
-
-        cookie_string = str(cookie).lower()
-
-if "samesite" not in cookie_string:
-    findings.append({
-        "Asset": url,
-        "Finding": f"Cookie '{cookie_name}' missing SameSite attribute",
-        "Severity": "Low",
-        "Description": "Cookie does not define a SameSite attribute.",
-        "Recommendation": "Set SameSite=Lax or SameSite=Strict where appropriate.",
-        "Status": "Open",
-        "Owner": "Unassigned"
-    })
-
-        server_header = response.headers.get("Server")
-
-if server_header:
-    findings.append({
-        "Asset": url,
-        "Finding": "Server Version Disclosure",
-        "Severity": "Low",
-        "Description": f"Server header exposed: {server_header}",
-        "Recommendation": "Minimize or remove server banner information.",
-        "Status": "Open",
-        "Owner": "Unassigned"
-    })
-
-powered_by = response.headers.get("X-Powered-By")
-
-if powered_by:
-    findings.append({
-        "Asset": url,
-        "Finding": "X-Powered-By Header Disclosure",
-        "Severity": "Low",
-        "Description": f"Technology disclosure detected: {powered_by}",
-        "Recommendation": "Remove or minimize technology disclosure headers.",
-        "Status": "Open",
-        "Owner": "Unassigned"
-    })
-
-        print(f"\nChecking headers for: {url}")
+        # Cookie Checks
+        print("\nChecking Cookies")
         print("=" * 60)
 
-        for header, risk_note in SECURITY_HEADERS.items():
+        for cookie in response.cookies:
+
+            cookie_name = cookie.name
+
+            if not cookie.secure:
+                add_finding(
+                    findings,
+                    url,
+                    f"Cookie '{cookie_name}' missing Secure flag",
+                    "Medium",
+                    "Cookie is transmitted without the Secure attribute.",
+                    "Set the Secure attribute on cookies."
+                )
+
+            if "httponly" not in str(cookie).lower():
+                add_finding(
+                    findings,
+                    url,
+                    f"Cookie '{cookie_name}' missing HttpOnly flag",
+                    "Medium",
+                    "Cookie may be accessible through client-side scripts.",
+                    "Set the HttpOnly attribute on cookies."
+                )
+
+            cookie_string = str(cookie).lower()
+
+            if "samesite" not in cookie_string:
+                add_finding(
+                    findings,
+                    url,
+                    f"Cookie '{cookie_name}' missing SameSite attribute",
+                    "Low",
+                    "Cookie does not define a SameSite attribute.",
+                    "Set SameSite=Lax or SameSite=Strict where appropriate."
+                )
+
+        # Information Disclosure
+        server_header = response.headers.get("Server")
+
+        if server_header:
+            add_finding(
+                findings,
+                url,
+                "Server Version Disclosure",
+                "Low",
+                f"Server header exposed: {server_header}",
+                "Minimize or remove server banner information."
+            )
+
+        powered_by = response.headers.get("X-Powered-By")
+
+        if powered_by:
+            add_finding(
+                findings,
+                url,
+                "X-Powered-By Header Disclosure",
+                "Low",
+                f"Technology disclosure detected: {powered_by}",
+                "Remove or minimize technology disclosure headers."
+            )
+
+        # Header Checks
+        print(f"\nChecking Headers for: {url}")
+        print("=" * 60)
+
+        for header, details in SECURITY_HEADERS.items():
 
             value = response.headers.get(header)
 
-            # Special validation for nosniff
             if header == "X-Content-Type-Options":
+
                 if value and value.lower() == "nosniff":
-                    status = "FOUND"
+
                     found_count += 1
 
                     print(f"[FOUND] {header}")
-                    print(f"        Value: {value}")
 
                     report["results"].append({
                         "header": header,
-                        "status": status,
-                        "value": value,
-                        "risk_note": ""
+                        "status": "FOUND",
+                        "value": value
                     })
 
                 else:
-                    status = "MISSING"
+
                     missing_count += 1
 
                     print(f"[MISSING] {header}")
-                    print("          Risk: Browser MIME sniffing may be possible.")
 
-                    report["results"].append({
-                        "header": header,
-                        "status": status,
-                        "value": value if value else "",
-                        "risk_note": risk_note
-                    })
-
-                    findings.append({
-                        "Asset": url,
-                        "Finding": "Missing or insecure X-Content-Type-Options",
-                        "Severity": FINDING_MAP[header]["severity"],
-                        "Description": risk_note,
-                        "Recommendation": FINDING_MAP[header]["recommendation"],
-                        "Status": "Open",
-                        "Owner": "Unassigned"
-                    })
+                    add_finding(
+                        findings,
+                        url,
+                        "Missing or insecure X-Content-Type-Options",
+                        details["severity"],
+                        details["risk"],
+                        details["recommendation"]
+                    )
 
             else:
+
                 if value:
-                    status = "FOUND"
+
                     found_count += 1
 
                     print(f"[FOUND] {header}")
-                    print(f"        Value: {value}")
 
                     report["results"].append({
                         "header": header,
-                        "status": status,
-                        "value": value,
-                        "risk_note": ""
+                        "status": "FOUND",
+                        "value": value
                     })
 
                 else:
-                    status = "MISSING"
+
                     missing_count += 1
 
                     print(f"[MISSING] {header}")
-                    print(f"          Risk: {risk_note}")
 
-                    report["results"].append({
-                        "header": header,
-                        "status": status,
-                        "value": "",
-                        "risk_note": risk_note
-                    })
+                    add_finding(
+                        findings,
+                        url,
+                        f"Missing {header}",
+                        details["severity"],
+                        details["risk"],
+                        details["recommendation"]
+                    )
 
-                    findings.append({
-                        "Asset": url,
-                        "Finding": f"Missing {header}",
-                        "Severity": FINDING_MAP[header]["severity"],
-                        "Description": risk_note,
-                        "Recommendation": FINDING_MAP[header]["recommendation"],
-                        "Status": "Open",
-                        "Owner": "Unassigned"
-                    })
-
-            print("-" * 60)
-
-        print("\nSummary")
+        # Summary
+        print("\nHeader Summary")
         print("=" * 60)
         print(f"Headers Found   : {found_count}")
         print(f"Headers Missing : {missing_count}")
 
-critical_count = len([f for f in findings if f["Severity"] == "Critical"])
-high_count = len([f for f in findings if f["Severity"] == "High"])
-medium_count = len([f for f in findings if f["Severity"] == "Medium"])
-low_count = len([f for f in findings if f["Severity"] == "Low"])
+        critical_count = len(
+            [f for f in findings if f["Severity"] == "Critical"]
+        )
+        high_count = len(
+            [f for f in findings if f["Severity"] == "High"]
+        )
+        medium_count = len(
+            [f for f in findings if f["Severity"] == "Medium"]
+        )
+        low_count = len(
+            [f for f in findings if f["Severity"] == "Low"]
+        )
 
-print("\nFindings Summary")
-print("=" * 60)
-print(f"Critical : {critical_count}")
-print(f"High     : {high_count}")
-print(f"Medium   : {medium_count}")
-print(f"Low      : {low_count}")
-print(f"Total    : {len(findings)}")
+        print("\nFindings Summary")
+        print("=" * 60)
+        print(f"Critical : {critical_count}")
+        print(f"High     : {high_count}")
+        print(f"Medium   : {medium_count}")
+        print(f"Low      : {low_count}")
+        print(f"Total    : {len(findings)}")
 
-report["findings"] = findings
-report["summary"] = {
-    "total_findings": len(findings),
-    "critical": critical_count,
-    "high": high_count,
-    "medium": medium_count,
-    "low": low_count
-}
+        report["findings"] = findings
 
+        report["summary"] = {
+            "total_findings": len(findings),
+            "critical": critical_count,
+            "high": high_count,
+            "medium": medium_count,
+            "low": low_count
+        }
+
+        # JSON Export
         with open("headers_report.json", "w", encoding="utf-8") as f:
             json.dump(report, f, indent=4)
 
-        with open("headers_vuln_report.csv", "w", newline="", encoding="utf-8") as csvfile:
+        # CSV Export
+        with open(
+            "headers_vuln_report.csv",
+            "w",
+            newline="",
+            encoding="utf-8"
+        ) as csvfile:
 
             fieldnames = [
                 "Asset",
@@ -288,7 +295,10 @@ report["summary"] = {
                 "Owner"
             ]
 
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=fieldnames
+            )
 
             writer.writeheader()
 
@@ -303,5 +313,9 @@ report["summary"] = {
 
 
 if __name__ == "__main__":
-    target = input("Enter target URL (e.g. https://example.com): ").strip()
+
+    target = input(
+        "Enter target URL (e.g. https://example.com): "
+    ).strip()
+
     check_headers(target)
