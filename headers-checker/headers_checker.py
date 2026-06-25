@@ -84,6 +84,19 @@ for cookie in response.cookies:
             "Owner": "Unassigned"
         })
 
+        cookie_string = str(cookie).lower()
+
+if "samesite" not in cookie_string:
+    findings.append({
+        "Asset": url,
+        "Finding": f"Cookie '{cookie_name}' missing SameSite attribute",
+        "Severity": "Low",
+        "Description": "Cookie does not define a SameSite attribute.",
+        "Recommendation": "Set SameSite=Lax or SameSite=Strict where appropriate.",
+        "Status": "Open",
+        "Owner": "Unassigned"
+    })
+
         server_header = response.headers.get("Server")
 
 if server_header:
@@ -202,6 +215,28 @@ if powered_by:
         print("=" * 60)
         print(f"Headers Found   : {found_count}")
         print(f"Headers Missing : {missing_count}")
+
+critical_count = len([f for f in findings if f["Severity"] == "Critical"])
+high_count = len([f for f in findings if f["Severity"] == "High"])
+medium_count = len([f for f in findings if f["Severity"] == "Medium"])
+low_count = len([f for f in findings if f["Severity"] == "Low"])
+
+print("\nFindings Summary")
+print("=" * 60)
+print(f"Critical : {critical_count}")
+print(f"High     : {high_count}")
+print(f"Medium   : {medium_count}")
+print(f"Low      : {low_count}")
+print(f"Total    : {len(findings)}")
+
+report["findings"] = findings
+report["summary"] = {
+    "total_findings": len(findings),
+    "critical": critical_count,
+    "high": high_count,
+    "medium": medium_count,
+    "low": low_count
+}
 
         with open("headers_report.json", "w", encoding="utf-8") as f:
             json.dump(report, f, indent=4)
