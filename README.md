@@ -27,7 +27,7 @@ A Python-based AppSec automation project that reviews web applications for missi
 * HttpOnly flag
 * SameSite attribute
 
-* Note: Cookie attribute checks are based on HTTP responses retrieved using Python's requests library. Some modern web applications may not expose all cookie attributes in this context, which can result in incomplete analysis.
+> **Note:** This tool is intended for security assessment and learning purposes. Cookie security checks rely on the information available in HTTP responses and may not capture all cookie attributes for every web application.
 
 ## Output
 
