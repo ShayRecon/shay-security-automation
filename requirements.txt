@@ -1,2 +1,9 @@
-requests
-pandas
+# External dependencies
+requests>=2.31.0
+
+# The following modules are included with Python and do not require installation:
+# ssl
+# socket
+# json
+# csv
+# urllib.parse
